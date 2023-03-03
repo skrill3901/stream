@@ -19,7 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var Emitter = require('emitter');
+const Emitter = require("emitter-component");
 
 function Stream() {
   Emitter.call(this);
@@ -29,7 +29,7 @@ module.exports = Stream;
 // Backwards-compat with node 0.4.x
 Stream.Stream = Stream;
 
-Stream.prototype.pipe = function(dest, options) {
+Stream.prototype.pipe = function (dest, options) {
   var source = this;
 
   function ondata(chunk) {
@@ -40,7 +40,7 @@ Stream.prototype.pipe = function(dest, options) {
     }
   }
 
-  source.on('data', ondata);
+  source.on("data", ondata);
 
   function ondrain() {
     if (source.readable && source.resume) {
@@ -48,13 +48,13 @@ Stream.prototype.pipe = function(dest, options) {
     }
   }
 
-  dest.on('drain', ondrain);
+  dest.on("drain", ondrain);
 
   // If the 'end' option is not supplied, dest.end() will be called when
   // source gets the 'end' or 'close' events.  Only dest.end() once.
   if (!dest._isStdio && (!options || options.end !== false)) {
-    source.on('end', onend);
-    source.on('close', onclose);
+    source.on("end", onend);
+    source.on("close", onclose);
   }
 
   var didOnEnd = false;
@@ -65,51 +65,50 @@ Stream.prototype.pipe = function(dest, options) {
     dest.end();
   }
 
-
   function onclose() {
     if (didOnEnd) return;
     didOnEnd = true;
 
-    if (typeof dest.destroy === 'function') dest.destroy();
+    if (typeof dest.destroy === "function") dest.destroy();
   }
 
   // don't leave dangling pipes when there are errors.
   function onerror(er) {
     cleanup();
-    if (!this.hasListeners('error')) {
+    if (!this.hasListeners("error")) {
       throw er; // Unhandled stream error in pipe.
     }
   }
 
-  source.on('error', onerror);
-  dest.on('error', onerror);
+  source.on("error", onerror);
+  dest.on("error", onerror);
 
   // remove all the event listeners that were added.
   function cleanup() {
-    source.off('data', ondata);
-    dest.off('drain', ondrain);
+    source.off("data", ondata);
+    dest.off("drain", ondrain);
 
-    source.off('end', onend);
-    source.off('close', onclose);
+    source.off("end", onend);
+    source.off("close", onclose);
 
-    source.off('error', onerror);
-    dest.off('error', onerror);
+    source.off("error", onerror);
+    dest.off("error", onerror);
 
-    source.off('end', cleanup);
-    source.off('close', cleanup);
+    source.off("end", cleanup);
+    source.off("close", cleanup);
 
-    dest.off('end', cleanup);
-    dest.off('close', cleanup);
+    dest.off("end", cleanup);
+    dest.off("close", cleanup);
   }
 
-  source.on('end', cleanup);
-  source.on('close', cleanup);
+  source.on("end", cleanup);
+  source.on("close", cleanup);
 
-  dest.on('end', cleanup);
-  dest.on('close', cleanup);
+  dest.on("end", cleanup);
+  dest.on("close", cleanup);
 
-  dest.emit('pipe', source);
+  dest.emit("pipe", source);
 
   // Allow for unix-like usage: A.pipe(B).pipe(C)
   return dest;
-}
+};
